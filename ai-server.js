@@ -1,7 +1,7 @@
 'use strict';
 const http=require('node:http');
 const PORT=Number(process.env.PORT||10000);
-const MODEL=process.env.GEMINI_MODEL||'gemini-2.5-flash';
+const MODEL=process.env.GEMINI_MODEL||'gemini-3.5-flash-lite';
 const ORIGIN='https://hoc-tieng-trung-hsk1.onrender.com';
 const REFUSE='Tao chỉ hỗ trợ HỌC TIẾNG TRUNG thôi nhé! Hỏi tao về chữ Hán, Pinyin, ngữ pháp, sửa câu, dịch, hội thoại hoặc văn hóa giao tiếp tiếng Trung đi.';
 const minLimit=new Map(),dayLimit=new Map();
@@ -48,3 +48,33 @@ http.createServer(async(req,res)=>{
  return send(res,out?200:502,out?{in_scope:true,answer:out}:{error:'Gemini chưa trả lời. Thử lại nhé.'},origin);
  }catch(e){console.warn('Chat error',e.name);return send(res,502,{error:'Có lỗi khi liên hệ Gemini. Thử lại sau.'},origin);}
 }).listen(PORT,'0.0.0.0',()=>console.log('HSK Gemini tutor listening on '+PORT+' keyConfigured='+!!process.env.GEMINI_API_KEY));
+
+/* Safe startup diagnostic: confirms the active model can generate content.
+   No secret, request payload, or generated text is written to the logs. */
+if(process.env.GEMINI_API_KEY){
+ setTimeout(async()=>{
+  try{
+   const probeBody={
+    systemInstruction:{parts:[{text:guide}]},
+    contents:[{role:'user',parts:[{text:'Giải thích ngắn gọn từ 你好 bằng tiếng Việt và Pinyin.'}]}],
+    generationConfig:{temperature:0.2,maxOutputTokens:500,responseMimeType:'application/json',
+     responseSchema:{type:'OBJECT',properties:{in_scope:{type:'BOOLEAN'},answer:{type:'STRING'}},
+       required:['in_scope','answer']}}
+   };
+   const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),20000);
+   let resp;try{
+    resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(MODEL)+':generateContent',{
+      method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':process.env.GEMINI_API_KEY},
+      body:JSON.stringify(probeBody),signal:ctl.signal});
+   }finally{clearTimeout(tm);}
+   if(!resp.ok){
+     const err=await resp.json().catch(()=>({}));
+     console.warn('Gemini startup probe failed: model='+MODEL+' HTTP='+resp.status+' reason='+String(err.error?.status||'unknown').slice(0,45));
+   }else{
+     const data=await resp.json(),raw=(data.candidates?.[0]?.content?.parts||[]).map(x=>x.text||'').join('');
+     let json={};try{json=JSON.parse(raw)}catch{}
+     console.log('Gemini startup probe: model='+MODEL+' HTTP=200 responseOk='+(json.in_scope===true&&!!json.answer));
+   }
+  }catch(e){console.warn('Gemini startup probe error: '+String(e.name||'network').slice(0,40));}
+ },2500);
+}
