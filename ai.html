@@ -1,0 +1,55 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#08796f"><title>AI gia sư tiếng Trung | HSK 1–4</title>
+<style>
+:root{--bg:#f2f7f8;--ink:#163640;--brand:#08796f;--muted:#617984;--line:#dce9e8}
+*{box-sizing:border-box}body{margin:0;color:var(--ink);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg)}button,textarea{font:inherit}button{cursor:pointer}a{color:inherit;text-decoration:none}
+header{background:linear-gradient(120deg,#102f4d,#0b877b);color:#fff;padding:17px 14px 25px}header .wrap,main{max-width:720px;margin:auto}header h1{font-size:25px;margin:12px 0 4px}header p{font-size:13px;margin:0;opacity:.93}.nav{display:flex;gap:8px;flex-wrap:wrap}.nav a{font-size:12px;border:1px solid #ffffff55;border-radius:10px;padding:6px 9px;background:#ffffff16}
+main{padding:12px 10px 130px}.intro{background:#e4f5ee;border:1px solid #c7e5d9;border-radius:14px;padding:12px;font-size:13px}.samples{display:flex;gap:7px;overflow-x:auto;padding:12px 0}.sample{white-space:nowrap;background:white;color:#0c6e62;font-size:12px;font-weight:750;padding:8px 11px;border:1px solid #cde3dd;border-radius:25px}.chat{min-height:350px;background:#fff;border:1px solid var(--line);border-radius:15px;padding:14px 12px}.msg{max-width:94%;margin-bottom:13px}.msg.user{margin-left:auto}.label{font-size:11px;color:#718892;font-weight:700;margin:0 0 3px}.msg.user .label{text-align:right}.bubble{background:#edf4f3;white-space:pre-wrap;overflow-wrap:anywhere;border-radius:14px;padding:11px;line-height:1.75}.msg.user .bubble{background:#d7f1e7}.acts{display:flex;gap:13px;margin:5px 1px}.acts button{border:0;background:none;color:#08796f;padding:2px;font-size:12px;font-weight:750}.small{font-size:12px;color:var(--muted);margin:13px 0}
+.composer{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #d5e5e2;padding:8px 10px max(12px,env(safe-area-inset-bottom));box-shadow:0 -5px 20px #082a2c16}.area{display:flex;max-width:720px;margin:auto;gap:8px;align-items:end}.area textarea{flex:1;width:100%;resize:vertical;min-height:48px;max-height:130px;border:1px solid #c4d8d4;border-radius:12px;padding:10px}.area button{background:var(--brand);border:0;color:white;border-radius:12px;height:48px;padding:0 15px;font-weight:750}.area button:disabled{opacity:.55}.state{max-width:720px;margin:auto;font-size:11px;color:#647985}
+</style></head><body>
+<header><div class="wrap"><div class="nav"><a href="./index.html">← 500 từ / 25 hội thoại</a><a href="./stories.html">🤣 16 truyện vui</a></div><h1>🤖 AI gia sư tiếng Trung</h1><p>Chỉ Mandarin · HSK 1 đến HSK 4 · Ngữ pháp · Pinyin · Hội thoại · Sửa câu</p></div></header>
+<main><div class="intro"><b>Chuyên học tiếng Trung, không trả lời ngoài chủ đề.</b> Hỏi bằng tiếng Việt hoặc chữ Hán; gia sư sẽ giải thích ngắn gọn kèm Pinyin và ví dụ gần đời sống.</div>
+<div class="samples">
+<button class="sample" data-prompt="Giải thích khác nhau giữa 会, 能 và 可以 kèm ví dụ đời thường.">会 / 能 / 可以</button>
+<button class="sample" data-prompt="Tao viết câu 我昨天去学校了. Câu này có đúng không? Sửa và giải thích nhé.">✍️ Sửa câu</button>
+<button class="sample" data-prompt="Dạy tao 5 câu gọi trà sữa ở Trung Quốc có Pinyin và nghĩa Việt.">🧋 Gọi trà sữa</button>
+<button class="sample" data-prompt="Luyện hội thoại tiếng Trung chủ đề mua sắm: hỏi từng câu và sửa lỗi cho tao.">💬 Luyện hội thoại</button>
+<button class="sample" data-prompt="Giải thích cách dùng 了 và 过 để dễ nhớ, có ví dụ.">了 / 过</button></div>
+<div class="chat" id="chat" aria-live="polite"><div class="msg"><div class="label">AI gia sư</div><div class="bubble">你好！Nǐ hǎo! 👋
+Hôm nay mày muốn luyện từ vựng, sửa câu, học ngữ pháp hay hội thoại tiếng Trung?</div></div></div>
+<p class="small">Lưu ý: Câu hỏi được gửi tới Render và Google Gemini để xử lý. Không gửi mật khẩu hay dữ liệu riêng tư. AI có thể nhầm, hãy đối chiếu nếu cần.</p>
+</main>
+<div class="composer"><div class="state" id="state">Sẵn sàng hỏi về tiếng Trung</div><form class="area" id="form"><textarea id="question" rows="2" maxlength="800" placeholder="Hỏi tiếng Trung… Ví dụ: 把 và 被 khác gì?" aria-label="Hỏi về tiếng Trung" required></textarea><button id="send" type="submit">Gửi ➤</button></form></div>
+<script>
+(function(){'use strict';
+const URL='https://hsk1-gemini-tutor-api.onrender.com/api/chat';
+const box=document.getElementById('chat'),input=document.getElementById('question'),send=document.getElementById('send'),state=document.getElementById('state'),history=[];
+let busy=false;
+function speak(text){
+ if(!('speechSynthesis' in window)){state.textContent='Trình duyệt chưa hỗ trợ đọc giọng tiếng Trung.';return;}
+ const cn=(text.match(/[\u3400-\u9fff]+[，。？！、；：\s]*/g)||[]).join(' ').trim();
+ if(!cn){state.textContent='Câu này chưa có chữ Hán để nghe.';return;}
+ speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(cn);u.lang='zh-CN';u.rate=.85;
+ const voices=speechSynthesis.getVoices();u.voice=voices.find(v=>/^zh[-_]CN/i.test(v.lang))||voices.find(v=>/^zh/i.test(v.lang))||null;speechSynthesis.speak(u);
+}
+function append(role,text){
+ const msg=document.createElement('div');msg.className='msg '+role;
+ const label=document.createElement('div');label.className='label';label.textContent=role==='user'?'Mày':'AI gia sư';
+ const bubble=document.createElement('div');bubble.className='bubble';bubble.textContent=text;msg.append(label,bubble);
+ if(role!=='user'){const acts=document.createElement('div');acts.className='acts';const listen=document.createElement('button');listen.textContent='🔊 Nghe chữ Hán';listen.type='button';listen.onclick=()=>speak(text);const copy=document.createElement('button');copy.textContent='📋 Sao chép';copy.type='button';copy.onclick=()=>navigator.clipboard?.writeText(text).catch(()=>{});acts.append(listen,copy);msg.append(acts);}
+ box.appendChild(msg);msg.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+async function ask(q){
+ if(busy||!q.trim())return;busy=true;send.disabled=true;send.textContent='Đang hỏi…';state.textContent='Gemini đang suy nghĩ…';
+ const text=q.trim();append('user',text);input.value='';
+ try{const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),42000);let r;
+ try{r=await fetch(URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:history.slice(-6)}),signal:controller.signal});}finally{clearTimeout(timeout);}
+ const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||'AI chưa kết nối được');
+ const answer=String(data.answer||'').trim();if(!answer)throw new Error('AI chưa trả lời');
+ append('model',answer);history.push({role:'user',text},{role:'model',text:answer});if(history.length>12)history.splice(0,history.length-12);state.textContent='Sẵn sàng hỏi tiếp tiếng Trung';
+ }catch(e){append('model','⚠️ '+(e.name==='AbortError'?'Máy chủ quá chậm, thử lại.':e.message));state.textContent='Có lỗi kết nối';}
+ finally{busy=false;send.disabled=false;send.textContent='Gửi ➤';}
+}
+document.getElementById('form').addEventListener('submit',e=>{e.preventDefault();ask(input.value);});
+document.querySelectorAll('[data-prompt]').forEach(b=>b.onclick=()=>{input.value=b.dataset.prompt;input.focus();});
+})();
+</script></body></html>
