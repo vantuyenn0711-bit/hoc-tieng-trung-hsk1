@@ -3,5 +3,5 @@ services:
   - type: web
     name: hoc-tieng-trung-hsk1
     runtime: static
-    buildCommand: mkdir -p public && cp index.html public/index.html
+    buildCommand: mkdir -p public && cp *.html public/
     staticPublishPath: public
