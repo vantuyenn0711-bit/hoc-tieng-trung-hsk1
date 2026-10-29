@@ -1,7 +1,7 @@
-# HSK 1 mobile learning site — Render Static Site
+# HSK 1 Premium static site: do not publish ai-server.js
 services:
   - type: web
     name: hoc-tieng-trung-hsk1
     runtime: static
-    buildCommand: mkdir -p public && cp *.html public/
+    buildCommand: mkdir -p public && cp index.html stories.html ai.html dashboard.html premium.css premium.js favicon.svg site.webmanifest public/
     staticPublishPath: public
