@@ -13,3 +13,11 @@ Vào **Settings → Pages → Build and deployment**, chọn **Deploy from a bra
 ## Lưu ý âm thanh
 
 Giọng trực tuyến cần Internet và có thể không được nguồn phát cho phép; chế độ giọng iPhone cần Safari hỗ trợ đọc tiếng Trung. Nên mở trang bằng Safari trực tiếp, không mở file `.html` dưới dạng tệp đính kèm Zalo.
+
+
+## Premium UI và Tổng quan học
+- Bốn trang: `index.html`, `stories.html`, `ai.html`, `dashboard.html`.
+- `premium.css` và `premium.js` thêm giao diện gọn cho iPhone, dark mode và lưu tiến độ.
+- Đánh dấu đã học 25 hội thoại, 28 nhóm từ, 16 truyện; lưu từ và truyện yêu thích.
+- Tiến độ dùng localStorage trên thiết bị, không đồng bộ qua các điện thoại.
+- Audio và Gemini API giữ nguyên; khóa Gemini chỉ nằm trong Render Environment, không đưa vào repo.
